@@ -19,9 +19,9 @@ DOT_COLOR  = (50, 190, 70)
 PLAYER_RADIUS = 30
 DOT_RADIUS    = 15
 EAT_DIST      = PLAYER_RADIUS + DOT_RADIUS  # distanță la care se mănâncă
-DOT_MIN_DIST  = DOT_RADIUS * 2 + 10        # distanță minimă între centrele bilelor verzi
+DOT_MIN_DIST  = DOT_RADIUS * 2 + 15        # distanță minimă între centrele bilelor verzi
 
-NUM_DOTS     = 501
+NUM_DOTS     = 251
 PLAYER_SPEED = 750.0  # px / secundă
 
 SCORE_AREA_H    = 160   # px rezervați sus pentru scor
@@ -29,8 +29,8 @@ PLAY_MARGIN     = 60    # margine față de borduri în zona de joc
 
 SCORE_FONT_SIZE = 110
 
-OUTRO_MOVE_SPEED  = 760.0  # px/s — viteza cu care câștigătorul merge la centru
-OUTRO_GROW_DUR    = 1.5    # secunde pentru creștere 1x → 10x
+OUTRO_MOVE_SPEED  = 1000.0  # px/s — viteza cu care câștigătorul merge la centru
+OUTRO_GROW_DUR    = 0.5    # secunde pentru creștere 1x → 10x
 OUTRO_HOLD_DUR    = 1.0    # secunde de așteptare la 10x
 
 RECORD_VIDEO = False
