@@ -191,8 +191,6 @@ def main():
             canvas.blit(blue_num_surf, blue_num_surf.get_rect(midleft=(x, ICON_Y)))
             x += blue_num_surf.get_width() + GAP
             pygame.draw.circle(canvas, BLUE_COLOR, (x + ICON_R, ICON_Y), ICON_R)
-            canvas.blit(red_num, red_num_rect)
-            pygame.draw.circle(canvas, RED_COLOR, (CW - 50, ICON_Y), ICON_R)
 
             # ── Bile verzi ──────────────────────────────────────
             for dot in dots:
