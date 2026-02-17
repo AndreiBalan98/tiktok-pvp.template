@@ -16,18 +16,17 @@ BLUE_COLOR = (30, 100, 220)
 RED_COLOR  = (220, 40, 40)
 DOT_COLOR  = (50, 190, 70)
 
-PLAYER_RADIUS = 38
-DOT_RADIUS    = 14
+PLAYER_RADIUS = 30
+DOT_RADIUS    = 15
 EAT_DIST      = PLAYER_RADIUS + DOT_RADIUS  # distanță la care se mănâncă
 
 NUM_DOTS     = 101
-PLAYER_SPEED = 500.0  # px / secundă
+PLAYER_SPEED = 1000.0  # px / secundă
 
 SCORE_AREA_H    = 160   # px rezervați sus pentru scor
 PLAY_MARGIN     = 60    # margine față de borduri în zona de joc
 
 SCORE_FONT_SIZE = 110
-LABEL_FONT_SIZE = 58
 
 GAME_OVER_PAUSE = 1.0   # secunde pauză după terminare
 
@@ -92,9 +91,8 @@ def main():
     pygame.display.set_caption("PvP Dots")
     clock = pygame.time.Clock()
 
-    canvas      = pygame.Surface((CW, CH)).convert()
-    font_score  = pygame.font.SysFont("Arial", SCORE_FONT_SIZE, bold=True)
-    font_label  = pygame.font.SysFont("Arial", LABEL_FONT_SIZE, bold=True)
+    canvas     = pygame.Surface((CW, CH)).convert()
+    font_score = pygame.font.SysFont("Arial", SCORE_FONT_SIZE, bold=True)
 
     # ── Zona de joc ────────────────────────────────────────
     play_left   = PLAY_MARGIN
@@ -168,25 +166,31 @@ def main():
             # Linie separatoare sub zona de scor
             pygame.draw.line(canvas, (200, 200, 200), (0, SCORE_AREA_H), (CW, SCORE_AREA_H), 3)
 
-            # ── Scor sus (stânga = albastru, dreapta = roșu) ──
-            ICON_R  = 22
-            ICON_Y  = SCORE_AREA_H // 2
+            # ── Scor tip fotbal: 🔴 scor_rosu - scor_albastru 🔵 ──
+            ICON_R = 32
+            ICON_Y = SCORE_AREA_H // 2
+            GAP    = 24
 
-            # Albastru: icon + scor pe stânga
-            pygame.draw.circle(canvas, BLUE_COLOR, (50, ICON_Y), ICON_R)
-            blue_lbl  = font_label.render("BLUE", True, BLUE_COLOR)
-            blue_lbl_rect = blue_lbl.get_rect(midleft=(82, ICON_Y - 22))
-            canvas.blit(blue_lbl, blue_lbl_rect)
-            blue_num  = font_score.render(str(blue_score), True, BLUE_COLOR)
-            blue_num_rect = blue_num.get_rect(midleft=(82, ICON_Y + 22))
-            canvas.blit(blue_num, blue_num_rect)
+            red_num_surf  = font_score.render(str(red_score),  True, RED_COLOR)
+            blue_num_surf = font_score.render(str(blue_score), True, BLUE_COLOR)
+            dash_surf     = font_score.render("-", True, (120, 120, 120))
 
-            # Roșu: scor + icon pe dreapta
-            red_lbl  = font_label.render("RED", True, RED_COLOR)
-            red_lbl_rect = red_lbl.get_rect(midright=(CW - 82, ICON_Y - 22))
-            canvas.blit(red_lbl, red_lbl_rect)
-            red_num  = font_score.render(str(red_score), True, RED_COLOR)
-            red_num_rect = red_num.get_rect(midright=(CW - 82, ICON_Y + 22))
+            total_w = (ICON_R * 2 + GAP
+                       + red_num_surf.get_width()  + GAP
+                       + dash_surf.get_width()      + GAP
+                       + blue_num_surf.get_width()  + GAP
+                       + ICON_R * 2)
+            x = CW // 2 - total_w // 2
+
+            pygame.draw.circle(canvas, RED_COLOR,  (x + ICON_R, ICON_Y), ICON_R)
+            x += ICON_R * 2 + GAP
+            canvas.blit(red_num_surf,  red_num_surf.get_rect(midleft=(x, ICON_Y)))
+            x += red_num_surf.get_width() + GAP
+            canvas.blit(dash_surf,     dash_surf.get_rect(midleft=(x, ICON_Y)))
+            x += dash_surf.get_width() + GAP
+            canvas.blit(blue_num_surf, blue_num_surf.get_rect(midleft=(x, ICON_Y)))
+            x += blue_num_surf.get_width() + GAP
+            pygame.draw.circle(canvas, BLUE_COLOR, (x + ICON_R, ICON_Y), ICON_R)
             canvas.blit(red_num, red_num_rect)
             pygame.draw.circle(canvas, RED_COLOR, (CW - 50, ICON_Y), ICON_R)
 
