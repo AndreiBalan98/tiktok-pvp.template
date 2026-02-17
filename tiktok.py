@@ -20,7 +20,7 @@ PLAYER_RADIUS = 30
 DOT_RADIUS    = 15
 EAT_DIST      = PLAYER_RADIUS + DOT_RADIUS  # distanță la care se mănâncă
 
-NUM_DOTS     = 301
+NUM_DOTS     = 501
 PLAYER_SPEED = 750.0  # px / secundă
 
 SCORE_AREA_H    = 160   # px rezervați sus pentru scor
