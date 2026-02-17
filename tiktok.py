@@ -19,9 +19,9 @@ DOT_COLOR  = (50, 190, 70)
 PLAYER_RADIUS = 30
 DOT_RADIUS    = 15
 EAT_DIST      = PLAYER_RADIUS + DOT_RADIUS  # distanță la care se mănâncă
-DOT_MIN_DIST  = DOT_RADIUS * 2 + 15        # distanță minimă între centrele bilelor verzi
+DOT_MIN_DIST  = DOT_RADIUS * 2 + 10        # distanță minimă între centrele bilelor verzi
 
-NUM_DOTS     = 251
+NUM_DOTS     = 501
 PLAYER_SPEED = 750.0  # px / secundă
 
 SCORE_AREA_H    = 160   # px rezervați sus pentru scor
