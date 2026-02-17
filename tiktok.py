@@ -33,7 +33,7 @@ OUTRO_MOVE_SPEED  = 760.0  # px/s — viteza cu care câștigătorul merge la ce
 OUTRO_GROW_DUR    = 1.5    # secunde pentru creștere 1x → 10x
 OUTRO_HOLD_DUR    = 1.0    # secunde de așteptare la 10x
 
-RECORD_VIDEO = True
+RECORD_VIDEO = False
 OUTPUT_MP4   = "output.mp4"
 FFMPEG_PATH  = "ffmpeg"
 
