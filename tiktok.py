@@ -28,7 +28,7 @@ PLAY_MARGIN     = 60    # margine față de borduri în zona de joc
 
 SCORE_FONT_SIZE = 110
 
-OUTRO_MOVE_SPEED  = 380.0  # px/s — viteza cu care câștigătorul merge la centru
+OUTRO_MOVE_SPEED  = 760.0  # px/s — viteza cu care câștigătorul merge la centru
 OUTRO_GROW_DUR    = 1.5    # secunde pentru creștere 1x → 10x
 OUTRO_HOLD_DUR    = 1.0    # secunde de așteptare la 10x
 
@@ -239,7 +239,11 @@ def main():
                 pygame.draw.circle(canvas, RED_COLOR,
                                    (int(red_pos[0]),  int(red_pos[1])),  PLAYER_RADIUS)
             else:
-                # Outro: doar câștigătorul, cu raza animată
+                # Outro: pierzătorul rămâne pe loc, câștigătorul animat
+                loser_color = BLUE_COLOR if winner_color == RED_COLOR else RED_COLOR
+                loser_pos   = blue_pos   if winner_color == RED_COLOR else red_pos
+                pygame.draw.circle(canvas, loser_color,
+                                   (int(loser_pos[0]), int(loser_pos[1])), PLAYER_RADIUS)
                 pygame.draw.circle(canvas, winner_color,
                                    (int(winner_pos[0]), int(winner_pos[1])),
                                    int(outro_radius))
