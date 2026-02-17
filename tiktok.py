@@ -28,7 +28,9 @@ PLAY_MARGIN     = 60    # margine față de borduri în zona de joc
 
 SCORE_FONT_SIZE = 110
 
-GAME_OVER_PAUSE = 1.0   # secunde pauză după terminare
+OUTRO_MOVE_SPEED  = 380.0  # px/s — viteza cu care câștigătorul merge la centru
+OUTRO_GROW_DUR    = 1.5    # secunde pentru creștere 1x → 10x
+OUTRO_HOLD_DUR    = 1.0    # secunde de așteptare la 10x
 
 RECORD_VIDEO = True
 OUTPUT_MP4   = "output.mp4"
@@ -118,8 +120,16 @@ def main():
     blue_score = 0
     red_score  = 0
 
-    game_over       = False
-    game_over_timer = 0.0
+    game_over = False
+
+    # Outro
+    outro_phase   = None   # None | "move" | "grow" | "hold"
+    winner_color  = None
+    winner_pos    = [0.0, 0.0]
+    outro_radius  = float(PLAYER_RADIUS)
+    outro_grow_t  = 0.0
+    outro_hold_t  = 0.0
+    SCREEN_CX, SCREEN_CY = CW // 2, CH // 2
 
     ff = start_ffmpeg() if RECORD_VIDEO else None
 
@@ -155,9 +165,35 @@ def main():
                             red_score += 1
                 else:
                     game_over = True
-            else:
-                game_over_timer += frame_dt
-                if game_over_timer >= GAME_OVER_PAUSE:
+                    # Stabilim câștigătorul
+                    if blue_score >= red_score:
+                        winner_color = BLUE_COLOR
+                        winner_pos   = list(blue_pos)
+                    else:
+                        winner_color = RED_COLOR
+                        winner_pos   = list(red_pos)
+                    outro_phase  = "move"
+                    outro_radius = float(PLAYER_RADIUS)
+
+            elif outro_phase == "move":
+                winner_pos = list(move_toward(winner_pos,
+                                              (SCREEN_CX, SCREEN_CY),
+                                              OUTRO_MOVE_SPEED, frame_dt))
+                if math.hypot(winner_pos[0] - SCREEN_CX,
+                              winner_pos[1] - SCREEN_CY) < 2.0:
+                    winner_pos = [float(SCREEN_CX), float(SCREEN_CY)]
+                    outro_phase = "grow"
+
+            elif outro_phase == "grow":
+                outro_grow_t += frame_dt
+                t = min(outro_grow_t / OUTRO_GROW_DUR, 1.0)
+                outro_radius = PLAYER_RADIUS * (1.0 + t * 9.0)   # 1x → 10x
+                if t >= 1.0:
+                    outro_phase = "hold"
+
+            elif outro_phase == "hold":
+                outro_hold_t += frame_dt
+                if outro_hold_t >= OUTRO_HOLD_DUR:
                     running = False
 
             # ── RENDER ──────────────────────────────────────────
@@ -197,10 +233,16 @@ def main():
                 pygame.draw.circle(canvas, DOT_COLOR, (int(dot[0]), int(dot[1])), DOT_RADIUS)
 
             # ── Jucători ────────────────────────────────────────
-            pygame.draw.circle(canvas, BLUE_COLOR,
-                               (int(blue_pos[0]), int(blue_pos[1])), PLAYER_RADIUS)
-            pygame.draw.circle(canvas, RED_COLOR,
-                               (int(red_pos[0]),  int(red_pos[1])),  PLAYER_RADIUS)
+            if not game_over:
+                pygame.draw.circle(canvas, BLUE_COLOR,
+                                   (int(blue_pos[0]), int(blue_pos[1])), PLAYER_RADIUS)
+                pygame.draw.circle(canvas, RED_COLOR,
+                                   (int(red_pos[0]),  int(red_pos[1])),  PLAYER_RADIUS)
+            else:
+                # Outro: doar câștigătorul, cu raza animată
+                pygame.draw.circle(canvas, winner_color,
+                                   (int(winner_pos[0]), int(winner_pos[1])),
+                                   int(outro_radius))
 
             # ── Afișare scalată pe ecran ─────────────────────────
             scaled = pygame.transform.smoothscale(canvas, screen.get_size())
