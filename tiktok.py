@@ -19,6 +19,7 @@ DOT_COLOR  = (50, 190, 70)
 PLAYER_RADIUS = 30
 DOT_RADIUS    = 15
 EAT_DIST      = PLAYER_RADIUS + DOT_RADIUS  # distanță la care se mănâncă
+DOT_MIN_DIST  = DOT_RADIUS * 2 + 10        # distanță minimă între centrele bilelor verzi
 
 NUM_DOTS     = 501
 PLAYER_SPEED = 750.0  # px / secundă
@@ -109,16 +110,31 @@ def main():
     red_pos  = [float(play_right - PLAYER_RADIUS - 10),
                 float(play_bottom - PLAYER_RADIUS - 10)]
 
-    # ── Bile verzi (aleator în zona de joc) ────────────────
+    # ── Bile verzi (aleator în zona de joc, fără suprapunere) ─
     random.seed()
     dots = []
+    min_dist_sq = DOT_MIN_DIST ** 2
+    MAX_TRIES   = 2000   # dacă zona e prea aglomerată, plasăm fără constrângere
     while len(dots) < NUM_DOTS:
-        x = random.randint(play_left + DOT_RADIUS + 5, play_right  - DOT_RADIUS - 5)
-        y = random.randint(play_top  + DOT_RADIUS + 5, play_bottom - DOT_RADIUS - 5)
-        dots.append([float(x), float(y)])
+        for _ in range(MAX_TRIES):
+            x = random.randint(play_left  + DOT_RADIUS + 5, play_right  - DOT_RADIUS - 5)
+            y = random.randint(play_top   + DOT_RADIUS + 5, play_bottom - DOT_RADIUS - 5)
+            if all((x - d[0]) ** 2 + (y - d[1]) ** 2 >= min_dist_sq for d in dots):
+                dots.append([float(x), float(y)])
+                break
+        else:
+            # Fallback: plasăm fără constrângere de distanță (zona saturată)
+            x = random.randint(play_left  + DOT_RADIUS + 5, play_right  - DOT_RADIUS - 5)
+            y = random.randint(play_top   + DOT_RADIUS + 5, play_bottom - DOT_RADIUS - 5)
+            dots.append([float(x), float(y)])
 
     blue_score = 0
     red_score  = 0
+
+    # Faze: "intro" → "game" → "outro"
+    phase       = "intro"
+    intro_timer = 0.0
+    INTRO_DUR   = 1.0   # secunde pentru apariția bilelor verzi
 
     game_over = False
 
@@ -145,7 +161,12 @@ def main():
                     running = False
 
             # ── LOGICĂ JOC ───────────────────────────────────────
-            if not game_over:
+            if phase == "intro":
+                intro_timer += frame_dt
+                if intro_timer >= INTRO_DUR:
+                    phase = "game"
+
+            elif phase == "game" and not game_over:
                 if dots:
                     # Albastru se mișcă
                     bi = find_nearest(blue_pos, dots)
@@ -229,7 +250,12 @@ def main():
             pygame.draw.circle(canvas, BLUE_COLOR, (x + ICON_R, ICON_Y), ICON_R)
 
             # ── Bile verzi ──────────────────────────────────────
-            for dot in dots:
+            if phase == "intro":
+                visible = int(min(intro_timer / INTRO_DUR, 1.0) * len(dots))
+                draw_dots = dots[:visible]
+            else:
+                draw_dots = dots
+            for dot in draw_dots:
                 pygame.draw.circle(canvas, DOT_COLOR, (int(dot[0]), int(dot[1])), DOT_RADIUS)
 
             # ── Jucători ────────────────────────────────────────
