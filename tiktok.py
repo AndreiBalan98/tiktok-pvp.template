@@ -31,7 +31,7 @@ OUTRO_MOVE_SPEED  = 1250.0  # px/s — viteza cu care câștigătorul merge la c
 OUTRO_GROW_DUR    = 0.25    # secunde pentru creștere 1x → 10x
 OUTRO_HOLD_DUR    = 0.25    # secunde de așteptare la 10x
 
-RECORD_VIDEO = False
+RECORD_VIDEO = True
 OUTPUT_MP4   = "output.mp4"
 FFMPEG_PATH  = "ffmpeg"
 
@@ -52,8 +52,8 @@ DOT_IMAGE_PATH = "images/food.png"
 # ── Alege care 2 personaje concurează (indici 0, 1 sau 2) ─────────────────
 # PLAYER_LEFT_IDX  → colț sus-stânga  (fostul Albastru)
 # PLAYER_RIGHT_IDX → colț jos-dreapta (fostul Roșu)
-PLAYER_LEFT_IDX  = 0
-PLAYER_RIGHT_IDX = 1
+PLAYER_LEFT_IDX  = 1
+PLAYER_RIGHT_IDX = 2
 
 # Culori text scor (rămân pentru cifre)
 LEFT_SCORE_COLOR  = (30, 100, 220)
