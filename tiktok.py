@@ -11,10 +11,7 @@ import pygame  # type: ignore
 CW, CH = 1080, 1920
 FPS = 60
 
-BG_COLOR   = (255, 255, 255)
-BLUE_COLOR = (30, 100, 220)
-RED_COLOR  = (220, 40, 40)
-DOT_COLOR  = (50, 190, 70)
+BG_COLOR = (255, 255, 255)
 
 PLAYER_RADIUS = 30
 DOT_RADIUS    = 15
@@ -28,6 +25,7 @@ SCORE_AREA_H    = 160   # px rezervați sus pentru scor
 PLAY_MARGIN     = 60    # margine față de borduri în zona de joc
 
 SCORE_FONT_SIZE = 110
+ICON_R          = 32    # raza iconiței din zona de scor
 
 OUTRO_MOVE_SPEED  = 1000.0  # px/s — viteza cu care câștigătorul merge la centru
 OUTRO_GROW_DUR    = 0.5    # secunde pentru creștere 1x → 10x
@@ -38,6 +36,42 @@ OUTPUT_MP4   = "output.mp4"
 FFMPEG_PATH  = "ffmpeg"
 
 # ==========================================================
+# PERSONAJE ȘI IMAGINI
+# ==========================================================
+# Adaugă căile către imaginile PNG (fără fundal) ale celor 3 personaje.
+# Imaginile pentru jucători sunt fețe de oameni; imaginea pentru bile e mâncare.
+
+CHARACTERS = [
+    {"name": "Personaj 1", "image": "images/char1.png"},
+    {"name": "Personaj 2", "image": "images/char2.png"},
+    {"name": "Personaj 3", "image": "images/char3.png"},
+]
+
+DOT_IMAGE_PATH = "images/food.png"
+
+# ── Alege care 2 personaje concurează (indici 0, 1 sau 2) ─────────────────
+# PLAYER_LEFT_IDX  → colț sus-stânga  (fostul Albastru)
+# PLAYER_RIGHT_IDX → colț jos-dreapta (fostul Roșu)
+PLAYER_LEFT_IDX  = 0
+PLAYER_RIGHT_IDX = 1
+
+# Culori text scor (rămân pentru cifre)
+LEFT_SCORE_COLOR  = (30, 100, 220)
+RIGHT_SCORE_COLOR = (220, 40, 40)
+
+# ==========================================================
+
+
+def load_square_img(path, size):
+    """Încarcă un PNG cu canal alpha și îl scalează la size x size."""
+    img = pygame.image.load(path).convert_alpha()
+    return pygame.transform.smoothscale(img, (size, size))
+
+
+def blit_centered(surface, img, cx, cy):
+    """Blitează img centrat la coordonatele (cx, cy)."""
+    half = img.get_width() // 2
+    surface.blit(img, (cx - half, cy - half))
 
 
 def start_ffmpeg():
@@ -85,6 +119,17 @@ def move_toward(pos, target, speed, dt):
 def main():
     pygame.init()
 
+    # ── Încărcare imagini ────────────────────────────────────
+    D_PLAYER = PLAYER_RADIUS * 2
+    D_DOT    = DOT_RADIUS * 2
+    D_ICON   = ICON_R * 2
+
+    left_img_player  = load_square_img(CHARACTERS[PLAYER_LEFT_IDX]["image"],  D_PLAYER)
+    right_img_player = load_square_img(CHARACTERS[PLAYER_RIGHT_IDX]["image"], D_PLAYER)
+    left_img_icon    = load_square_img(CHARACTERS[PLAYER_LEFT_IDX]["image"],  D_ICON)
+    right_img_icon   = load_square_img(CHARACTERS[PLAYER_RIGHT_IDX]["image"], D_ICON)
+    dot_img          = load_square_img(DOT_IMAGE_PATH, D_DOT)
+
     info  = pygame.display.Info()
     scale = min((info.current_w * 0.92) / CW, (info.current_h * 0.92) / CH)
     win_w = max(320, int(CW * scale))
@@ -104,11 +149,11 @@ def main():
     play_bottom = CH - PLAY_MARGIN
 
     # ── Poziții inițiale jucători ──────────────────────────
-    # Albastru: colț sus-stânga   |   Roșu: colț jos-dreapta
-    blue_pos = [float(play_left  + PLAYER_RADIUS + 10),
-                float(play_top   + PLAYER_RADIUS + 10)]
-    red_pos  = [float(play_right - PLAYER_RADIUS - 10),
-                float(play_bottom - PLAYER_RADIUS - 10)]
+    # Stânga: colț sus-stânga   |   Dreapta: colț jos-dreapta
+    left_pos  = [float(play_left  + PLAYER_RADIUS + 10),
+                 float(play_top   + PLAYER_RADIUS + 10)]
+    right_pos = [float(play_right - PLAYER_RADIUS - 10),
+                 float(play_bottom - PLAYER_RADIUS - 10)]
 
     # ── Bile verzi (aleator în zona de joc, fără suprapunere) ─
     random.seed()
@@ -128,8 +173,8 @@ def main():
             y = random.randint(play_top   + DOT_RADIUS + 5, play_bottom - DOT_RADIUS - 5)
             dots.append([float(x), float(y)])
 
-    blue_score = 0
-    red_score  = 0
+    left_score  = 0
+    right_score = 0
 
     # Faze: "intro" → "game" → "outro"
     phase       = "intro"
@@ -139,12 +184,12 @@ def main():
     game_over = False
 
     # Outro
-    outro_phase   = None   # None | "move" | "grow" | "hold"
-    winner_color  = None
-    winner_pos    = [0.0, 0.0]
-    outro_radius  = float(PLAYER_RADIUS)
-    outro_grow_t  = 0.0
-    outro_hold_t  = 0.0
+    outro_phase    = None   # None | "move" | "grow" | "hold"
+    winner_is_left = True
+    winner_pos     = [0.0, 0.0]
+    outro_radius   = float(PLAYER_RADIUS)
+    outro_grow_t   = 0.0
+    outro_hold_t   = 0.0
     SCREEN_CX, SCREEN_CY = CW // 2, CH // 2
 
     ff = start_ffmpeg() if RECORD_VIDEO else None
@@ -168,33 +213,29 @@ def main():
 
             elif phase == "game" and not game_over:
                 if dots:
-                    # Albastru se mișcă
-                    bi = find_nearest(blue_pos, dots)
+                    # Stânga se mișcă
+                    bi = find_nearest(left_pos, dots)
                     bt = dots[bi]
-                    blue_pos = list(move_toward(blue_pos, bt, PLAYER_SPEED, frame_dt))
-                    if math.hypot(blue_pos[0] - bt[0], blue_pos[1] - bt[1]) <= EAT_DIST:
+                    left_pos = list(move_toward(left_pos, bt, PLAYER_SPEED, frame_dt))
+                    if math.hypot(left_pos[0] - bt[0], left_pos[1] - bt[1]) <= EAT_DIST:
                         dots.pop(bi)
-                        blue_score += 1
+                        left_score += 1
 
-                    # Roșu se mișcă (pe lista actualizată)
+                    # Dreapta se mișcă (pe lista actualizată)
                     if dots:
-                        ri = find_nearest(red_pos, dots)
+                        ri = find_nearest(right_pos, dots)
                         rt = dots[ri]
-                        red_pos = list(move_toward(red_pos, rt, PLAYER_SPEED, frame_dt))
-                        if math.hypot(red_pos[0] - rt[0], red_pos[1] - rt[1]) <= EAT_DIST:
+                        right_pos = list(move_toward(right_pos, rt, PLAYER_SPEED, frame_dt))
+                        if math.hypot(right_pos[0] - rt[0], right_pos[1] - rt[1]) <= EAT_DIST:
                             dots.pop(ri)
-                            red_score += 1
+                            right_score += 1
                 else:
                     game_over = True
                     # Stabilim câștigătorul
-                    if blue_score >= red_score:
-                        winner_color = BLUE_COLOR
-                        winner_pos   = list(blue_pos)
-                    else:
-                        winner_color = RED_COLOR
-                        winner_pos   = list(red_pos)
-                    outro_phase  = "move"
-                    outro_radius = float(PLAYER_RADIUS)
+                    winner_is_left = (left_score >= right_score)
+                    winner_pos     = list(left_pos if winner_is_left else right_pos)
+                    outro_phase    = "move"
+                    outro_radius   = float(PLAYER_RADIUS)
 
             elif outro_phase == "move":
                 winner_pos = list(move_toward(winner_pos,
@@ -223,56 +264,59 @@ def main():
             # Linie separatoare sub zona de scor
             pygame.draw.line(canvas, (200, 200, 200), (0, SCORE_AREA_H), (CW, SCORE_AREA_H), 3)
 
-            # ── Scor tip fotbal: 🔴 scor_rosu - scor_albastru 🔵 ──
-            ICON_R = 32
+            # ── Scor: [img_dreapta] scor_dr - scor_st [img_stânga] ──
             ICON_Y = SCORE_AREA_H // 2
             GAP    = 24
 
-            red_num_surf  = font_score.render(str(red_score),  True, RED_COLOR)
-            blue_num_surf = font_score.render(str(blue_score), True, BLUE_COLOR)
-            dash_surf     = font_score.render("-", True, (120, 120, 120))
+            right_num_surf = font_score.render(str(right_score), True, RIGHT_SCORE_COLOR)
+            left_num_surf  = font_score.render(str(left_score),  True, LEFT_SCORE_COLOR)
+            dash_surf      = font_score.render("-", True, (120, 120, 120))
 
-            total_w = (ICON_R * 2 + GAP
-                       + red_num_surf.get_width()  + GAP
-                       + dash_surf.get_width()      + GAP
-                       + blue_num_surf.get_width()  + GAP
-                       + ICON_R * 2)
+            total_w = (D_ICON + GAP
+                       + right_num_surf.get_width()  + GAP
+                       + dash_surf.get_width()        + GAP
+                       + left_num_surf.get_width()    + GAP
+                       + D_ICON)
             x = CW // 2 - total_w // 2
 
-            pygame.draw.circle(canvas, RED_COLOR,  (x + ICON_R, ICON_Y), ICON_R)
-            x += ICON_R * 2 + GAP
-            canvas.blit(red_num_surf,  red_num_surf.get_rect(midleft=(x, ICON_Y)))
-            x += red_num_surf.get_width() + GAP
-            canvas.blit(dash_surf,     dash_surf.get_rect(midleft=(x, ICON_Y)))
+            blit_centered(canvas, right_img_icon, x + ICON_R, ICON_Y)
+            x += D_ICON + GAP
+            canvas.blit(right_num_surf, right_num_surf.get_rect(midleft=(x, ICON_Y)))
+            x += right_num_surf.get_width() + GAP
+            canvas.blit(dash_surf,      dash_surf.get_rect(midleft=(x, ICON_Y)))
             x += dash_surf.get_width() + GAP
-            canvas.blit(blue_num_surf, blue_num_surf.get_rect(midleft=(x, ICON_Y)))
-            x += blue_num_surf.get_width() + GAP
-            pygame.draw.circle(canvas, BLUE_COLOR, (x + ICON_R, ICON_Y), ICON_R)
+            canvas.blit(left_num_surf,  left_num_surf.get_rect(midleft=(x, ICON_Y)))
+            x += left_num_surf.get_width() + GAP
+            blit_centered(canvas, left_img_icon, x + ICON_R, ICON_Y)
 
-            # ── Bile verzi ──────────────────────────────────────
+            # ── Bile de mâncare ──────────────────────────────────
             if phase == "intro":
                 visible = int(min(intro_timer / INTRO_DUR, 1.0) * len(dots))
                 draw_dots = dots[:visible]
             else:
                 draw_dots = dots
             for dot in draw_dots:
-                pygame.draw.circle(canvas, DOT_COLOR, (int(dot[0]), int(dot[1])), DOT_RADIUS)
+                blit_centered(canvas, dot_img, int(dot[0]), int(dot[1]))
 
             # ── Jucători ────────────────────────────────────────
             if not game_over:
-                pygame.draw.circle(canvas, BLUE_COLOR,
-                                   (int(blue_pos[0]), int(blue_pos[1])), PLAYER_RADIUS)
-                pygame.draw.circle(canvas, RED_COLOR,
-                                   (int(red_pos[0]),  int(red_pos[1])),  PLAYER_RADIUS)
+                blit_centered(canvas, left_img_player,
+                              int(left_pos[0]),  int(left_pos[1]))
+                blit_centered(canvas, right_img_player,
+                              int(right_pos[0]), int(right_pos[1]))
             else:
                 # Outro: pierzătorul rămâne pe loc, câștigătorul animat
-                loser_color = BLUE_COLOR if winner_color == RED_COLOR else RED_COLOR
-                loser_pos   = blue_pos   if winner_color == RED_COLOR else red_pos
-                pygame.draw.circle(canvas, loser_color,
-                                   (int(loser_pos[0]), int(loser_pos[1])), PLAYER_RADIUS)
-                pygame.draw.circle(canvas, winner_color,
-                                   (int(winner_pos[0]), int(winner_pos[1])),
-                                   int(outro_radius))
+                winner_img = left_img_player  if winner_is_left else right_img_player
+                loser_img  = right_img_player if winner_is_left else left_img_player
+                loser_pos  = right_pos        if winner_is_left else left_pos
+
+                blit_centered(canvas, loser_img,
+                              int(loser_pos[0]), int(loser_pos[1]))
+
+                diam = max(1, int(outro_radius) * 2)
+                scaled_winner = pygame.transform.smoothscale(winner_img, (diam, diam))
+                blit_centered(canvas, scaled_winner,
+                              int(winner_pos[0]), int(winner_pos[1]))
 
             # ── Afișare scalată pe ecran ─────────────────────────
             scaled = pygame.transform.smoothscale(canvas, screen.get_size())
