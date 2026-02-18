@@ -21,8 +21,8 @@ DOT_MIN_DIST  = DOT_RADIUS * 2 + 30        # distanță minimă între centrele 
 NUM_DOTS     = 51
 PLAYER_SPEED = 750.0  # px / secundă
 
-SCORE_AREA_H    = 160   # px rezervați sus pentru scor
-PLAY_MARGIN     = 60    # margine față de borduri în zona de joc
+SCORE_AREA_H    = 320   # px rezervați sus pentru scor
+PLAY_MARGIN     = 100    # margine față de borduri în zona de joc
 
 SCORE_FONT_SIZE = 110
 ICON_R          = 64    # raza iconiței din zona de scor
@@ -271,7 +271,7 @@ def main():
             pygame.draw.line(canvas, (200, 200, 200), (0, SCORE_AREA_H), (CW, SCORE_AREA_H), 3)
 
             # ── Scor: [img_dreapta] scor_dr - scor_st [img_stânga] ──
-            ICON_Y = SCORE_AREA_H // 2
+            ICON_Y = SCORE_AREA_H - ICON_R - 10
             GAP    = 24
 
             right_num_surf = font_score.render(str(right_score), True, RIGHT_SCORE_COLOR)
