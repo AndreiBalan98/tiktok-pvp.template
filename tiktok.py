@@ -13,23 +13,23 @@ FPS = 60
 
 BG_COLOR = (255, 255, 255)
 
-PLAYER_RADIUS = 60
-DOT_RADIUS    = 20
-EAT_DIST      = PLAYER_RADIUS + DOT_RADIUS  # distanță la care se mănâncă
-DOT_MIN_DIST  = DOT_RADIUS * 2 + 10        # distanță minimă între centrele bilelor verzi
+PLAYER_RADIUS = 75
+DOT_RADIUS    = 35
+EAT_DIST      = PLAYER_RADIUS / 1.5 + DOT_RADIUS  # distanță la care se mănâncă
+DOT_MIN_DIST  = DOT_RADIUS * 2 + 30        # distanță minimă între centrele bilelor verzi
 
-NUM_DOTS     = 501
+NUM_DOTS     = 51
 PLAYER_SPEED = 750.0  # px / secundă
 
 SCORE_AREA_H    = 160   # px rezervați sus pentru scor
 PLAY_MARGIN     = 60    # margine față de borduri în zona de joc
 
 SCORE_FONT_SIZE = 110
-ICON_R          = 32    # raza iconiței din zona de scor
+ICON_R          = 64    # raza iconiței din zona de scor
 
-OUTRO_MOVE_SPEED  = 1000.0  # px/s — viteza cu care câștigătorul merge la centru
-OUTRO_GROW_DUR    = 0.5    # secunde pentru creștere 1x → 10x
-OUTRO_HOLD_DUR    = 1.0    # secunde de așteptare la 10x
+OUTRO_MOVE_SPEED  = 1250.0  # px/s — viteza cu care câștigătorul merge la centru
+OUTRO_GROW_DUR    = 0.25    # secunde pentru creștere 1x → 10x
+OUTRO_HOLD_DUR    = 0.25    # secunde de așteptare la 10x
 
 RECORD_VIDEO = False
 OUTPUT_MP4   = "output.mp4"
