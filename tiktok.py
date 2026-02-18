@@ -13,8 +13,8 @@ FPS = 60
 
 BG_COLOR = (255, 255, 255)
 
-PLAYER_RADIUS = 30
-DOT_RADIUS    = 15
+PLAYER_RADIUS = 60
+DOT_RADIUS    = 20
 EAT_DIST      = PLAYER_RADIUS + DOT_RADIUS  # distanță la care se mănâncă
 DOT_MIN_DIST  = DOT_RADIUS * 2 + 10        # distanță minimă între centrele bilelor verzi
 
@@ -63,8 +63,14 @@ RIGHT_SCORE_COLOR = (220, 40, 40)
 
 
 def load_square_img(path, size):
-    """Încarcă un PNG cu canal alpha și îl scalează la size x size."""
+    """Încarcă un PNG, decupează automat zona vizibilă, scalează la size×size."""
     img = pygame.image.load(path).convert_alpha()
+    # Crop la bounding box-ul pixelilor non-transparenți
+    mask = pygame.mask.from_surface(img)
+    bboxes = mask.get_bounding_rects()
+    if bboxes:
+        bbox = bboxes[0].unionall(bboxes[1:])
+        img = img.subsurface(bbox).copy()
     return pygame.transform.smoothscale(img, (size, size))
 
 
