@@ -119,7 +119,16 @@ def move_toward(pos, target, speed, dt):
 def main():
     pygame.init()
 
-    # ── Încărcare imagini ────────────────────────────────────
+    info  = pygame.display.Info()
+    scale = min((info.current_w * 0.92) / CW, (info.current_h * 0.92) / CH)
+    win_w = max(320, int(CW * scale))
+    win_h = max(568, int(CH * scale))
+
+    screen = pygame.display.set_mode((win_w, win_h))
+    pygame.display.set_caption("PvP Dots")
+    clock = pygame.time.Clock()
+
+    # ── Încărcare imagini (după set_mode, necesar pentru convert_alpha) ──
     D_PLAYER = PLAYER_RADIUS * 2
     D_DOT    = DOT_RADIUS * 2
     D_ICON   = ICON_R * 2
@@ -129,15 +138,6 @@ def main():
     left_img_icon    = load_square_img(CHARACTERS[PLAYER_LEFT_IDX]["image"],  D_ICON)
     right_img_icon   = load_square_img(CHARACTERS[PLAYER_RIGHT_IDX]["image"], D_ICON)
     dot_img          = load_square_img(DOT_IMAGE_PATH, D_DOT)
-
-    info  = pygame.display.Info()
-    scale = min((info.current_w * 0.92) / CW, (info.current_h * 0.92) / CH)
-    win_w = max(320, int(CW * scale))
-    win_h = max(568, int(CH * scale))
-
-    screen = pygame.display.set_mode((win_w, win_h))
-    pygame.display.set_caption("PvP Dots")
-    clock = pygame.time.Clock()
 
     canvas     = pygame.Surface((CW, CH)).convert()
     font_score = pygame.font.SysFont("Arial", SCORE_FONT_SIZE, bold=True)
